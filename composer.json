@@ -1,0 +1,54 @@
+{
+    "name": "w360/import-gpg-excel",
+    "description": "Library for uploads images multi sizes",
+    "version": "2.0.2",
+    "keywords": [
+        "w360",
+        "import-gpg-excel"
+    ],
+    "homepage": "https://github.com/w360/image-storage",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Elbert Tous",
+            "email": "elbertjose@hotmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require-dev": {
+        "orchestra/testbench": "^7.22",
+        "laravel/legacy-factories": "^1.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "W360\\ImportGpgExcel\\": "src",
+            "Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "W360\\ImportGpgExcel\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+              "ImportGpgExcelServiceProvider"
+            ],
+            "aliases": {
+                "ImportGPG": "W360\\ImportGpgExcel\\Facades\\ImportGPG"
+            }
+        }
+    },
+    "require": {
+        "maatwebsite/excel": "^3.1"
+    }
+}
