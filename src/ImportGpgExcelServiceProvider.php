@@ -3,7 +3,6 @@
 namespace W360\ImportGpgExcel;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\View\Compilers\BladeCompiler;
 
 class ImportGpgExcelServiceProvider extends ServiceProvider
 {
@@ -51,7 +50,7 @@ class ImportGpgExcelServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/config.php' => config_path('import-gpg.php'),
+                __DIR__ . '/../config/config.php' => config_path('gnupg.php'),
             ], 'config');
 
             $this->publishes([

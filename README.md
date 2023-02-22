@@ -18,8 +18,39 @@ library to import files encrypted with pgp format
     > composer require w360/import-gpg-excel
 
 ## Examples
-- Example of use uploading a profile photo for a user
+### Example of used to load Excel files encrypted with OpenPGP
 
+####App\Imports\UsersImport.php
+```PHP
+<?php
+
+namespace App\Imports;
+
+use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Concerns\ToModel;
+use App\Models\User;
+use W360\ImportGpgExcel\Imports\GpgImport;
+
+class UsersImport extends GpgImport implements ToModel
+{
+
+    /**
+     * @param array $row
+     *
+     * @return User|null
+     */
+    public function model(array $row)
+    {
+        return new User([
+            'name'     => $row[0],
+            'email'    => $row[1],
+            'password' => Hash::make($row[2]),
+        ]);
+    }
+
+}
+```
+####App\App\Http\Controllers\TestController.php
 ```PHP
 <?php
 
@@ -27,33 +58,29 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use W360\ImportGpgExcel\Facades\ImportGPG;
-use W360\ImportGpgExcel\Imports\UsersImport;
 use W360\ImportGpgExcel\Models\Import;
+use App\Imports\UsersImport;
 
 class TestController extends Controller
 {
-    private function saveProfile(Request $request){
-        if($request->hasFile('file_pgp') and Auth::check()){
-            $storage = 'files';
-            $file = $request->file_pgp;
-            ImportGPG::create($file, $storage, UsersImport::class);
+    private function upload(Request $request){
+        if($request->hasFile('file')){
+            ImportGPG::create($request->file, 'default', UsersImport::class);
         }
     }
     
-    public function showFilesImport(){
+    public function showImportFiles(){
          return Import::all();
     }
 }
 ```
-
 ## Features
 
-- Allows uploading images to storage easily
-- Allows you to generate multiple sizes of an image with its corresponding quality settings
+- Allows uploading Excel files encrypted with OpenPGP
 
 ## Libraries
 
-- Image Intervention https://image.intervention.io/v2/introduction/installation
+- Laravel Excel https://docs.laravel-excel.com/
 
 ##  License
 
