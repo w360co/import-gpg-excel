@@ -5,10 +5,9 @@ namespace W360\ImportGpgExcel\Listeners;
 
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
-use W360\ImportGpgExcel\Events\Deleting;
 
 
-class FileImporter
+class FileDeleter
 {
 
     /**
@@ -28,15 +27,16 @@ class FileImporter
     {
         if ($event->import) {
             $extOut = strtolower(config('gnupg.extension_output', 'XLSX'));
-            if (class_exists($event->import->model_type)) {
-                $realPath = Storage::disk($event->import->storage)->path($event->import->storage . '/' . $event->import->name);
+            $realPath = Storage::disk($event->import->storage)->path($event->import->storage . '/' . $event->import->name);
+            if (file_exists($realPath)) {
                 $ext = pathinfo($realPath, PATHINFO_EXTENSION);
                 $filepathOut = str_replace(".$ext", ".$extOut", $realPath);
-                if(file_exists($filepathOut)){
-                    $ImportModel = new $event->import->model_type($event->import);
-                    Excel::queueImport($ImportModel, $filepathOut);
+                @unlink($realPath);
+                if (file_exists($filepathOut)) {
+                    @unlink($filepathOut);
                 }
             }
         }
     }
+
 }

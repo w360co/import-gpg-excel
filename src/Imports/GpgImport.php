@@ -3,27 +3,34 @@
 namespace W360\ImportGpgExcel\Imports;
 
 use Illuminate\Console\OutputStyle;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\RemembersRowNumber;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithProgressBar;
 use Maatwebsite\Excel\Concerns\WithStartRow;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Events\ImportFailed;
+use W360\ImportGpgExcel\Events\Deleting;
 use W360\ImportGpgExcel\Events\Processing;
 use W360\ImportGpgExcel\Models\Import;
 
 class GpgImport implements
     WithStartRow,
     WithEvents,
-    WithProgressBar,
+    ShouldQueue,
+    WithChunkReading,
     WithBatchInserts
 {
 
     use Importable {
         getConsoleOutput as traitGetConsoleOutput;
     }
+
+    use RemembersRowNumber;
 
     /**
      * @var
@@ -33,30 +40,14 @@ class GpgImport implements
     /**
      * @var Import
      */
-    public $import;
+    public $gpgImport;
 
     /**
-     * @param Import $import
+     * @param Import $gpgImport
      */
-    public function __construct(Import $import)
+    public function __construct(Import $gpgImport)
     {
-        $this->import = $import;
-    }
-
-    /**
-     * @return OutputStyle
-     */
-    public function getConsoleOutput(): OutputStyle
-    {
-        $batchSize = $this->batchSize();
-        if(($this->import->processed_rows + $batchSize) >= $this->import->total_rows){
-            $this->import->processed_rows = $this->import->total_rows;
-        }else{
-            $this->import->processed_rows += $batchSize;
-        }
-        $this->import->save();
-        $this->event();
-        return $this->traitGetConsoleOutput();
+        $this->gpgImport = $gpgImport;
     }
 
     /**
@@ -66,16 +57,16 @@ class GpgImport implements
     {
         return [
             BeforeImport::class => function (BeforeImport $event) {
-                $this->import->total_rows = Arr::first($event->getReader()->getTotalRows()) - ($this->startRow() - 1);
-                $this->import->state = 'processing';
-                $this->import->save();
+                $this->gpgImport->total_rows = Arr::first($event->getReader()->getTotalRows()) - ($this->startRow() - 1);
+                $this->gpgImport->state = 'processing';
+                $this->gpgImport->save();
                 $this->event();
             },
             ImportFailed::class => function(ImportFailed $event) {
-                $this->import->failed_rows += 1;
-                $this->import->processed_rows -= 1;
-                $this->import->state = 'failed';
-                $this->import->save();
+                $this->gpgImport->failed_rows += 1;
+                $this->gpgImport->processed_rows -= 1;
+                $this->gpgImport->state = 'failed';
+                $this->gpgImport->save();
                 $this->event();
             }
         ];
@@ -86,7 +77,14 @@ class GpgImport implements
      */
     private function event()
     {
-        $percent = ($this->import->processed_rows / $this->import->total_rows) * 100;
+        $batchSize = $this->batchSize();
+        if( ($this->gpgImport->processed_rows + $batchSize) >= $this->gpgImport->total_rows ){
+            $this->gpgImport->processed_rows = $this->gpgImport->total_rows;
+        }else{
+            $this->gpgImport->processed_rows +=  $batchSize;
+        }
+
+        $percent = ($this->gpgImport->processed_rows / $this->gpgImport->total_rows) * 100;
         if ($percent === $this->prevPercent) {
             return;
         }
@@ -94,12 +92,13 @@ class GpgImport implements
         $this->prevPercent = $percent;
         if ($percent >= 100) {
             $percent = 100;
-            $this->import->state = 'completed';
+            $this->gpgImport->state = 'completed';
+            event(new Deleting($this->gpgImport));
         }
-        $this->import->percent = $percent;
-        $this->import->save();
+        $this->gpgImport->percent = $percent;
+        $this->gpgImport->save();
 
-        Processing::dispatch($percent,$this->import->name);
+        Processing::dispatch($percent,$this->gpgImport->name);
     }
 
     /**
@@ -111,11 +110,21 @@ class GpgImport implements
     }
 
     /**
+    * @return int
+    */
+    public function chunkSize(): int
+    {
+        return 1000;
+    }
+
+
+    /**
      * @return int
      */
     public function batchSize(): int
     {
         return 1000;
     }
+
 
 }

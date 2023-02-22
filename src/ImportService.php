@@ -60,25 +60,4 @@ class ImportService
     }
 
 
-    /**
-     * @param $storage
-     * @param $name
-     * @return bool
-     */
-    public function delete($storage, $name)
-    {
-        if(isset($storage) && isset($name)) {
-            $file = Import::where('storage', $storage)
-                ->where('name', $name)
-                ->first();
-            if($file) {
-                if ($file->delete()) {
-                    $disk = Storage::disk($storage);
-                    return $disk->delete($storage . "/" . $name);
-                }
-            }
-        }
-        return true;
-    }
-
 }

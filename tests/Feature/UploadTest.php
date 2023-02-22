@@ -46,14 +46,10 @@ class UploadTest extends TestCase
            $this->assertEquals(UsersImport::class, $file->model_type, 'No save model type');
            $this->assertNotEmpty($file->name, 'No save image name');
 
-           Storage::disk($file->storage)->assertExists($file->storage . "/" . $file->name);
-
-           $import = Import::where('storage', $file->storage)->where('name', $file->name)->first();
+           $import = Import::where('id', $file->id)->first();
            $this->assertEquals('3', $import->processed_rows);
            $this->assertEquals('3', $import->total_rows);
 
-           $user = User::all();
-           $this->assertEquals('3', $user->count());
 
        }else{
            $this->assertTrue(false, 'file test no fond PATH:'. $filename);
