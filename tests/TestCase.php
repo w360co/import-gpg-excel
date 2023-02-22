@@ -51,11 +51,6 @@ abstract class TestCase extends BaseTestCase
             'database' => ':memory:',
         ]);
         $app->useStoragePath(__DIR__ . '/../storage/');
-       /* $app['config']->set('filesystems.disks.local', [
-            'driver' => 'local',
-            'root' => realpath(__DIR__ . '/../storage/app/public'),
-            'visibility' => 'public',
-        ]); */
 
     }
 

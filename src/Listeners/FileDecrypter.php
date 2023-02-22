@@ -54,19 +54,43 @@ class FileDecrypter
      */
     private function decryptGpg($input, $output): string
     {
+        if($this->importGpg()) {
+            $process = new Process([
+                'gpg',
+                '--pinentry-mode',
+                'loopback',
+                '--passphrase=' . config('gnupg.secret_passphrase'),
+                '-o',
+                $output,
+                '--yes',
+                '--no-tty',
+                '--skip-verify',
+                '-d',
+                $input
+            ]);
 
+            $process->run();
+
+            if (!$process->isSuccessful()) {
+                throw new ProcessFailedException($process);
+            }
+
+            return $process->isSuccessful();
+        } else {
+            return false;
+        }
+    }
+
+
+    /**
+     * @return string
+     */
+    private function importGpg(): string
+    {
         $process = new Process([
             'gpg',
-            '--pinentry-mode',
-            'loopback',
-            '--passphrase=' . config('gnupg.secret_passphrase', 'default'),
-            '-o',
-            $output,
-            '--yes',
-            '--no-tty',
-            '--skip-verify',
-            '-d',
-            $input
+            '--import',
+            config('gnupg.signing_key')
         ]);
 
         $process->run();

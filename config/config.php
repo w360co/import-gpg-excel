@@ -34,6 +34,17 @@ return [
     'extension_output' => env('GPG_EXTENSION_OUTPUT', Excel::XLSX),
 
 
+    /*
+     |--------------------------------------------------------------------------
+     | GPG Signing Key
+     |--------------------------------------------------------------------------
+     |
+     |  extension to save the decry
+     |
+     */
+
+    'signing_key' => env('GPG_SIGNING_KEY', __DIR__.'/../key.asc')
+
 
 
 ];
