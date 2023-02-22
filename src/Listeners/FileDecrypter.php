@@ -52,14 +52,14 @@ class FileDecrypter
      * @param $passphrase
      * @return string
      */
-    private function decryptGpg($input, $output, $passphrase): string
+    private function decryptGpg($input, $output): string
     {
 
         $process = new Process([
             'gpg',
             '--pinentry-mode',
             'loopback',
-            '--passphrase=' . $passphrase,
+            '--passphrase=' . config('gnupg.secret_passphrase', 'default'),
             '-o',
             $output,
             '--yes',

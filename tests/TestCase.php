@@ -50,11 +50,12 @@ abstract class TestCase extends BaseTestCase
             'driver' => 'sqlite',
             'database' => ':memory:',
         ]);
-        $app['config']->set('filesystems.disks.local', [
+        $app->useStoragePath(__DIR__ . '/../storage/');
+       /* $app['config']->set('filesystems.disks.local', [
             'driver' => 'local',
             'root' => realpath(__DIR__ . '/../storage/app/public'),
             'visibility' => 'public',
-        ]);
+        ]); */
 
     }
 

@@ -35,8 +35,9 @@ class UploadTest extends TestCase
     public function upload_and_create_new_file_to_storage(){
 
        $storage = 'local';
+       Storage::fake($storage);
 
-       $filename =  realpath(__DIR__.'/files/test.xlsx.gpg');
+       $filename =  realpath(__DIR__ . '/files/mock.xlsx.gpg');
        if(file_exists($filename)) {
            $upload = $this->getUploadedFile($filename);
 
