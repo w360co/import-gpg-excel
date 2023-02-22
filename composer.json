@@ -41,10 +41,10 @@
     "extra": {
         "laravel": {
             "providers": [
-              "ImportGpgExcelServiceProvider",
+              "ImportGpgExcelServiceProvider"
             ],
             "aliases": {
-                "ImportGPG": "W360\\ImportGpgExcel\\Facades\\ImportGPG",
+                "ImportGPG": "W360\\ImportGpgExcel\\Facades\\ImportGPG"
             }
         }
     },
