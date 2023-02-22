@@ -22,7 +22,8 @@ class CreateImportsTable extends Migration
             $table->string('author')->nullable();
             $table->unsignedBigInteger('total_rows')->default('0');
             $table->unsignedBigInteger('failed_rows')->default('0');
-            $table->unsignedBigInteger('completed_rows')->default('0');
+            $table->unsignedBigInteger('processed_rows')->default('0');
+            $table->unsignedInteger('percent')->default('0');
             $table->enum('state', ['pending', 'processing', 'completed','failed'])->default('pending');
             $table->string('model_type')->index();
             $table->timestamps();

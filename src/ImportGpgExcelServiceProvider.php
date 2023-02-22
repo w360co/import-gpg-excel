@@ -21,14 +21,19 @@ class ImportGpgExcelServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        // Register evens
+        $this->app->register(EventServiceProvider::class);
+
+
         // Automatically apply the package configuration
-        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'import-gpg-excel');
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'gnupg');
 
 
         // Register the main class to use with the facade
         $this->app->singleton('ImportGPG', function () {
             return new ImportService;
         });
+
     }
 
     /**

@@ -1,11 +1,11 @@
-# W360 Image Storage
+# W360 Import GPG Excel
 
-Base module for w360 projects using react
+library to import files encrypted with pgp format
 
-[![runtest](https://github.com/w360co/image-storage/actions/workflows/laravel-test.yml/badge.svg?branch=main)](https://github.com/w360co/image-storage/actions/workflows/laravel-test.yml)
-[![Total Downloads](https://img.shields.io/packagist/dt/w360/image-storage)](https://packagist.org/packages/w360/image-storage)
-[![Latest Stable Version](https://img.shields.io/packagist/v/w360/image-storage)](https://packagist.org/packages/w360/image-storage)
-[![License](https://img.shields.io/packagist/l/w360/image-storage)](https://packagist.org/packages/w360/image-storage)
+[![runtest](https://github.com/w360co/import-gpg-excel/actions/workflows/laravel-test.yml/badge.svg?branch=main)](https://github.com/w360co/import-gpg-excel/actions/workflows/laravel-test.yml)
+[![Total Downloads](https://img.shields.io/packagist/dt/w360/import-gpg-excel)](https://packagist.org/packages/w360/import-gpg-excel)
+[![Latest Stable Version](https://img.shields.io/packagist/v/w360/import-gpg-excel)](https://packagist.org/packages/w360/import-gpg-excel)
+[![License](https://img.shields.io/packagist/l/w360/import-gpg-excel)](https://packagist.org/packages/w360/import-gpg-excel)
 
 # Table of Contents
 <!-- TOC -->
@@ -15,65 +15,37 @@ Base module for w360 projects using react
 
 ## Installation
 
-    > composer require w360/image-storage
+    > composer require w360/import-gpg-excel
 
 ## Examples
 - Example of use uploading a profile photo for a user
+
 ```PHP
 <?php
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use W360\ImageStorage\Facades\ImageST;
+use W360\ImportGpgExcel\Facades\ImportGPG;
+use W360\ImportGpgExcel\Imports\UsersImport;
+use W360\ImportGpgExcel\Models\Import;
 
 class TestController extends Controller
 {
     private function saveProfile(Request $request){
-        if($request->hasFile('photo') and Auth::check()){
-            $storage = 'photos';
-            $photo = $request->photo;
-            $user = User::findOrFail(Auth::user()->id);
-            ImageST::updateOrCreate($photo, $storage, $user);
+        if($request->hasFile('file_pgp') and Auth::check()){
+            $storage = 'files';
+            $file = $request->file_pgp;
+            ImportGPG::create($file, $storage, UsersImport::class);
         }
+    }
+    
+    public function showFilesImport(){
+         return Import::all();
     }
 }
 ```
 
-```PHP
-<?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use W360\ImageStorage\Models\ImageStorage;
-
-class User extends Authenticatable
-{
-    use HasApiTokens, HasFactory, Notifiable, HasImages;
-    
-    public function getPhotoAttribute(){
-        return $this->images()->first();
-    } 
-}
-```
-```html
-show uploaded image 
-@php($photo = Auth::user()->photo)
-@if($photo)
-<img src="{{ image($photo->name, $photo->storage) }}" alt="image uploaded with w360/image-storage" />
-get xs image
-<img src="{{ image($photo->name, $photo->storage, 'xs') }}" alt="image uploaded with w360/image-storage xs size" />
-...
-get xxl image
-<img src="{{ image($photo->name, $photo->storage, 'xxl') }}" alt="image uploaded with w360/image-storage xxl size" />
-@endif
-```
 ## Features
 
 - Allows uploading images to storage easily

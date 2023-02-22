@@ -2,20 +2,23 @@
 
 namespace W360\ImportGpgExcel\Tests\Feature;
 
-
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use W360\ImportGpgExcel\Events\Decrypting;
+use W360\ImportGpgExcel\Events\Importing;
+use W360\ImportGpgExcel\Events\Processing;
 use W360\ImportGpgExcel\Facades\ImportGPG;
+use W360\ImportGpgExcel\Imports\UsersImport;
 use W360\ImportGpgExcel\Models\Import;
-use W360\ImportGpgExcel\Models\User;
 use W360\ImportGpgExcel\Tests\TestCase;
 
 class UploadTest extends TestCase
 {
 
-    use DatabaseMigrations, RefreshDatabase;
+    use DatabaseMigrations;
 
     /**
      * @test
@@ -30,19 +33,41 @@ class UploadTest extends TestCase
      */
     public function upload_and_create_new_file_to_storage(){
 
-       $storage = 'files';
-       Storage::fake($storage);
+       $storage = 'local';
 
-       $upload = UploadedFile::fake()->createWithContent('test.xlsx.gpg',
-           file_get_contents(__DIR__."/files/test.xlsx.gpg")
-       );
-       $file = ImportGPG::create($upload, $storage, User::class);
+       $filename =  realpath(__DIR__.'/files/test.xlsx.gpg');
+       if(file_exists($filename)) {
+           $upload = $this->getUploadedFile($filename);
 
-       $this->assertEquals(User::class, $file->model_type,'No save model type' );
-       $this->assertNotEmpty($file->name,'No save image name' );
+           $file = ImportGPG::create($upload, $storage, UsersImport::class);
 
-       Storage::disk($file->storage)->assertExists($file->storage."/".$file->name);
+           $this->assertEquals(UsersImport::class, $file->model_type, 'No save model type');
+           $this->assertNotEmpty($file->name, 'No save image name');
 
+           Storage::disk($file->storage)->assertExists($file->storage . "/" . $file->name);
+
+
+           $import = Import::where('storage', $file->storage)->where('name', $file->name)->first();
+           $this->assertEquals('4', $import->processed_rows);
+       }else{
+           $this->assertTrue(false, 'file test no fond PATH:'. $filename);
+       }
+    }
+
+
+    /**
+     * @param $path
+     * @param int|null $error
+     * @param bool $test
+     * @return UploadedFile
+     */
+    private function getUploadedFile( $path, int $error = null, bool $test = false)
+    {
+        $name = File::name( $path );
+        $extension = File::extension( $path );
+        $originalName = $name . '.' . $extension;
+        $mimeType = File::mimeType( $path );
+        return new UploadedFile( $path, $originalName, $mimeType, $error, $test );
     }
 
 
