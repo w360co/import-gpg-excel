@@ -1,7 +1,7 @@
 {
     "name": "w360/import-gpg-excel",
     "description": "Library for uploads images multi sizes",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "keywords": [
         "w360",
         "import-gpg-excel"
