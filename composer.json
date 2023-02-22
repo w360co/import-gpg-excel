@@ -1,7 +1,7 @@
 {
     "name": "w360/import-gpg-excel",
     "description": "Library for uploads images multi sizes",
-    "version": "2.0.2",
+    "version": "1.0.2",
     "keywords": [
         "w360",
         "import-gpg-excel"
@@ -41,7 +41,7 @@
     "extra": {
         "laravel": {
             "providers": [
-              "ImportGpgExcelServiceProvider"
+                "W360\\ImportGpgExcel\\ImportGpgExcelServiceProvider"
             ],
             "aliases": {
                 "ImportGPG": "W360\\ImportGpgExcel\\Facades\\ImportGPG"
