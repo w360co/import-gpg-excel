@@ -13,6 +13,7 @@ use W360\ImportGpgExcel\Events\Processing;
 use W360\ImportGpgExcel\Facades\ImportGPG;
 use W360\ImportGpgExcel\Imports\UsersImport;
 use W360\ImportGpgExcel\Models\Import;
+use W360\ImportGpgExcel\Models\User;
 use W360\ImportGpgExcel\Tests\TestCase;
 
 class UploadTest extends TestCase
@@ -46,9 +47,13 @@ class UploadTest extends TestCase
 
            Storage::disk($file->storage)->assertExists($file->storage . "/" . $file->name);
 
-
            $import = Import::where('storage', $file->storage)->where('name', $file->name)->first();
-           $this->assertEquals('4', $import->processed_rows);
+           $this->assertEquals('3', $import->processed_rows);
+           $this->assertEquals('3', $import->total_rows);
+
+           $user = User::all();
+           $this->assertEquals('3', $user->count());
+
        }else{
            $this->assertTrue(false, 'file test no fond PATH:'. $filename);
        }

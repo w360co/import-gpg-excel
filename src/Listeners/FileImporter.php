@@ -4,6 +4,7 @@ namespace W360\ImportGpgExcel\Listeners;
 
 
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class FileImporter
@@ -32,7 +33,7 @@ class FileImporter
                 $filepathOut = str_replace(".$ext", ".$extOut", $realPath);
                 if(file_exists($filepathOut)){
                     $ImportModel = new $event->import->model_type($event->import);
-                    $ImportModel->import($filepathOut);
+                    Excel::import($ImportModel, $filepathOut);
                 }
             }
         }

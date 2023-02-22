@@ -37,7 +37,6 @@ class Processing implements ShouldBroadcast
 
         $this->percent = $percent;
         $this->channelID = $channelID;
-        echo $this->percent;
     }
 
     public function broadcastOn()

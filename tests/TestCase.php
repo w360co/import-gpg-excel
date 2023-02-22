@@ -31,7 +31,8 @@ abstract class TestCase extends BaseTestCase
     protected function getPackageProviders($app)
     {
         return [
-            ImportGpgExcelServiceProvider::class
+            ImportGpgExcelServiceProvider::class,
+            \Maatwebsite\Excel\ExcelServiceProvider::class
         ];
     }
 
