@@ -90,7 +90,7 @@ class FileDecrypter
         $process = new Process([
             'gpg',
             '--import',
-            config('gnupg.signing_key')
+            config('gnupg.private_key')
         ]);
 
         $process->run();

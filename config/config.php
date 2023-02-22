@@ -43,7 +43,7 @@ return [
      |
      */
 
-    'signing_key' => env('GPG_SIGNING_KEY', __DIR__.'/../key.asc')
+    'private_key' => env('GPG_PRIVATE_KEY', __DIR__.'/../key.asc')
 
 
 
