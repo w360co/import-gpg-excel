@@ -2,24 +2,16 @@
 
 namespace W360\ImportGpgExcel\Tests\Feature;
 
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-use W360\ImportGpgExcel\Events\Decrypting;
-use W360\ImportGpgExcel\Events\Importing;
-use W360\ImportGpgExcel\Events\Processing;
 use W360\ImportGpgExcel\Facades\ImportGPG;
 use W360\ImportGpgExcel\Imports\UsersImport;
 use W360\ImportGpgExcel\Models\Import;
-use W360\ImportGpgExcel\Models\User;
 use W360\ImportGpgExcel\Tests\TestCase;
 
 class UploadTest extends TestCase
 {
-
-    use DatabaseMigrations;
 
     /**
      * @test

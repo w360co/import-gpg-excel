@@ -2,6 +2,8 @@
 
 namespace W360\ImportGpgExcel;
 
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 
 class ImportGpgExcelServiceProvider extends ServiceProvider
@@ -40,7 +42,9 @@ class ImportGpgExcelServiceProvider extends ServiceProvider
      */
     private function registerResources()
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->publishes([
+            __DIR__ . '/../database/migrations/create_imports_table.php.stub' => $this->getMigrationFileName('create_imports_table.php'),
+        ], 'migrations');
     }
 
     /**
@@ -52,10 +56,27 @@ class ImportGpgExcelServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__ . '/../config/config.php' => config_path('gnupg.php'),
             ], 'config');
-
-            $this->publishes([
-                __DIR__ . '/../database/migrations/' => database_path('migrations'),
-            ], 'migrations');
         }
+    }
+
+    /**
+     * Returns existing migration file if found, else uses the current timestamp.
+     *
+     * @param $migrationFileName
+     * @return string
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     */
+    protected function getMigrationFileName($migrationFileName): string
+    {
+        $timestamp = date('Y_m_d_His');
+
+        $filesystem = $this->app->make(Filesystem::class);
+
+        return Collection::make($this->app->databasePath().DIRECTORY_SEPARATOR.'migrations'.DIRECTORY_SEPARATOR)
+            ->flatMap(function ($path) use ($filesystem, $migrationFileName) {
+                return $filesystem->glob($path.'*_'.$migrationFileName);
+            })
+            ->push($this->app->databasePath()."/migrations/{$timestamp}_{$migrationFileName}")
+            ->first();
     }
 }
