@@ -19,8 +19,10 @@
         <env name="ASSET_URL" value=""/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_DATABASE" value="test"/>
+        <env name="DB_USERNAME" value="root"/>
         <env name="QUEUE_CONNECTION" value="database"/>
         <env name="GPG_SECRET_PASSPHRASE" value="default"/>
         <env name="MAIL_MAILER" value="array"/>
