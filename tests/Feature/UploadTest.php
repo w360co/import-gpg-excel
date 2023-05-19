@@ -12,9 +12,11 @@ use W360\ImportGpgExcel\Facades\ImportGPG;
 use W360\ImportGpgExcel\Imports\UsersImport;
 use W360\ImportGpgExcel\Models\Import;
 use W360\ImportGpgExcel\Tests\TestCase;
+use W360\ImportGpgExcel\Traits\HasStorage;
 
 class UploadTest extends TestCase
 {
+    use HasStorage;
 
     /**
      * @test
@@ -30,8 +32,8 @@ class UploadTest extends TestCase
      */
     public function upload_and_create_new_file_to_storage(){
 
-       $storage = 'local';
-       Storage::fake($storage);
+       $storage = 'imports';
+       Storage::fake($this->getDriver($storage));
        Queue::fake();
 
        $filename =  realpath(__DIR__ . '/files/mock.xlsx.gpg');

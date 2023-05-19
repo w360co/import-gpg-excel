@@ -5,6 +5,7 @@
 /storage/*.key
 /storage/**/*.gpg
 /storage/**/*.xlsx
+/storage/**/*.log
 /vendor
 .env
 .env.backup

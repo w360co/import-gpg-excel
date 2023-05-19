@@ -9,11 +9,13 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use W360\ImportGpgExcel\Events\Decrypting;
 use W360\ImportGpgExcel\Events\Importing;
+use W360\ImportGpgExcel\Traits\HasStorage;
 
 
 class FileDecrypter
 {
 
+    use HasStorage;
 
     /**
      * Create the event listener.
@@ -31,7 +33,7 @@ class FileDecrypter
     public function handle(Decrypting $event)
     {
         if ($event->import) {
-            $realPath = Storage::disk($event->import->storage)->path($event->import->storage . '/' . $event->import->name);
+            $realPath = $this->getDisk($event->import->storage)->path($event->import->storage . DIRECTORY_SEPARATOR . $event->import->name);
             if (file_exists($realPath)) {
                 $ext = pathinfo($realPath, PATHINFO_EXTENSION);
                 $extOut = strtolower(config('gnupg.extension_output', 'XLSX'));

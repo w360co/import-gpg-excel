@@ -46,15 +46,15 @@ class ImportService
     public function create($file, $storage, string $model)
     {
         return $this->upload($file, $storage, function($fileName, $storage) use ($model) {
-            $this->getDisk($storage)->append($storage.DIRECTORY_SEPARATOR.$fileName, '# :::::::::: LOG IMPORT REPORT :::::::::: #');
+            $this->getDisk($storage)->append($storage.DIRECTORY_SEPARATOR.$fileName.".log", '# :::::::::: LOG IMPORT REPORT :::::::::: #');
             return Import::firstOrCreate([
                 'name' => $fileName,
-                'storage' => $this->getDriver($storage),
+                'storage' => $storage,
                 'total_rows' => 0,
                 'failed_rows' => 0,
                 'processed_rows' => 0,
                 'state' => 'pending',
-                'report' => $storage.DIRECTORY_SEPARATOR.$fileName,
+                'report' => $storage.DIRECTORY_SEPARATOR.$fileName.".log",
                 'author_type' => (Auth::check() ? Auth::user()->getMorphClass() : null),
                 'author_id' => (Auth::check() ? Auth::user()->id: null),
                 'model_type' => $model
