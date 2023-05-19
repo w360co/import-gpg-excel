@@ -19,6 +19,7 @@ use Maatwebsite\Excel\Events\BeforeImport;
 use W360\ImportGpgExcel\Contracts\ToRow;
 use W360\ImportGpgExcel\Events\Processing;
 use W360\ImportGpgExcel\Models\Import;
+use W360\ImportGpgExcel\Traits\HasStorage;
 
 class GpgImport implements
     WithStartRow,
@@ -34,6 +35,8 @@ class GpgImport implements
     use Importable {
         getConsoleOutput as traitGetConsoleOutput;
     }
+
+    use HasStorage;
 
 
     /**
@@ -83,10 +86,7 @@ class GpgImport implements
     public function exception($message, $skip = true)
     {
         if(!empty($this->gpgImport->storage)) {
-            Storage::disk($this->gpgImport->storage)->append(
-                $this->gpgImport->storage . DIRECTORY_SEPARATOR . $this->gpgImport->report,
-                $message
-            );
+           $this->getDisk($this->gpgImport->storage)->append($this->gpgImport->report, $message);
         }
 
         if($skip){

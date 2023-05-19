@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use W360\ImportGpgExcel\Events\Decrypting;
 use W360\ImportGpgExcel\Events\Importing;
 use W360\ImportGpgExcel\Models\Import;
+use W360\ImportGpgExcel\Traits\HasStorage;
 
 /**
  * @class ImageService
@@ -16,6 +17,7 @@ use W360\ImportGpgExcel\Models\Import;
 class ImportService
 {
 
+    use HasStorage;
 
     /**
      * @param Illuminate\Http\UploadedFile | Symfony\Component\HttpFoundation\File\UploadedFile $file
@@ -25,7 +27,7 @@ class ImportService
      */
     private function upload($file, $storage, \Closure $function)
     {
-        $disk = Storage::disk($storage);
+        $disk = $this->getDisk($storage);
         $fileName = hexdec(uniqid()) . '.' . $file->getClientOriginalExtension();
         $disk->put($storage . "/" . $fileName, file_get_contents($file));
         $import = $function($fileName, $storage);
@@ -34,7 +36,6 @@ class ImportService
         }
         return $import;
     }
-
 
     /**
      * @param Illuminate\Http\UploadedFile | Symfony\Component\HttpFoundation\File\UploadedFile $file
@@ -45,16 +46,17 @@ class ImportService
     public function create($file, $storage, string $model)
     {
         return $this->upload($file, $storage, function($fileName, $storage) use ($model) {
+            $this->getDisk($storage)->append($storage.DIRECTORY_SEPARATOR.$fileName, '# :::::::::: LOG IMPORT REPORT :::::::::: #');
             return Import::firstOrCreate([
                 'name' => $fileName,
-                'storage' => $storage,
+                'storage' => $this->getDriver($storage),
                 'total_rows' => 0,
                 'failed_rows' => 0,
                 'processed_rows' => 0,
                 'state' => 'pending',
-                'report' => 'log-'.$fileName,
+                'report' => $storage.DIRECTORY_SEPARATOR.$fileName,
                 'author_type' => (Auth::check() ? Auth::user()->getMorphClass() : null),
-                'author_id' => (Auth::check() ? Auth::user()->ud: null),
+                'author_id' => (Auth::check() ? Auth::user()->id: null),
                 'model_type' => $model
             ]);
         });

@@ -7,16 +7,23 @@ use W360\ImportGpgExcel\Models\User;
 
 class UsersImport extends GpgImport
 {
-   /**
-    * @return mixed|null
-    */
-    public function row($row)
+
+    /**
+     * @param array $row
+     * @return bool
+     * @throws \Exception
+     */
+    public function row(array $row): bool
     {
-        return new User([
-            'name'     => $row['name'],
-            'email'    => $row['email'],
-            'password' => Hash::make('password'),
-        ]);
+        $findUser = User::where('identifier', $row['identifier'])->first();
+        if(!$findUser){
+            return User::create([
+                'name'     => $row['name'],
+                'email'    => $row['email'],
+                'password' => Hash::make($row['password']),
+            ]);
+        }
+        return $this->exception('User '.$row['identifier'].' already exists');
     }
 
 }
