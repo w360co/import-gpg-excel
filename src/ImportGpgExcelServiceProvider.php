@@ -44,6 +44,9 @@ class ImportGpgExcelServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__ . '/../database/migrations/create_imports_table.php.stub' => $this->getMigrationFileName('create_imports_table.php'),
+            __DIR__ . '/../database/migrations/create_failed_jobs_table.php.stub' => $this->getMigrationFileName('create_failed_jobs_table.php'),
+            __DIR__ . '/../database/migrations/create_jobs_table.php.stub' => $this->getMigrationFileName('create_jobs_table.php'),
+
         ], 'migrations');
     }
 

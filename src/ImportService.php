@@ -53,7 +53,8 @@ class ImportService
                 'processed_rows' => 0,
                 'state' => 'pending',
                 'report' => 'log-'.$fileName,
-                'author' => (Auth::check() ? Auth::user()->username : null),
+                'author_type' => (Auth::check() ? Auth::user()->getMorphClass() : null),
+                'author_id' => (Auth::check() ? Auth::user()->ud: null),
                 'model_type' => $model
             ]);
         });

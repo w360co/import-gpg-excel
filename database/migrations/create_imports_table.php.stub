@@ -19,7 +19,8 @@ class CreateImportsTable extends Migration
             $table->string('name')->index();
             $table->string('storage')->index();
             $table->string('report')->nullable();
-            $table->string('author')->nullable();
+            $table->string('author_type')->nullable();
+            $table->unsignedBigInteger('author_id')->nullable();
             $table->unsignedBigInteger('total_rows')->default('0');
             $table->unsignedBigInteger('failed_rows')->default('0');
             $table->unsignedBigInteger('processed_rows')->default('0');
@@ -27,6 +28,7 @@ class CreateImportsTable extends Migration
             $table->enum('state', ['pending', 'processing', 'completed','failed'])->default('pending');
             $table->string('model_type')->index();
             $table->timestamps();
+            $table->index(['author_id', 'author_type'], 'author_has_images_author_id_author_type_index');
             $table->index('created_at');
             $table->index('updated_at');
         });

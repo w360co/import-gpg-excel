@@ -7,12 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Import extends Model
 {
-      use HasFactory;
+    use HasFactory;
 
-      protected $guarded = [];
+    protected $guarded = [];
 
-      public function model()
-      {
-         return $this->morphTo();
-      }
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     */
+    public function model()
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     */
+    public function author()
+    {
+        return $this->morphTo();
+    }
+
 }

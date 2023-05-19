@@ -17,6 +17,40 @@ library to import files encrypted with pgp format
 
     > composer require w360/import-gpg-excel
 
+## Publishable
+
+    php artisan vendor:publish --tag=config
+    php artisan vendor:publish --tag=migration
+
+## Migration
+    
+    > php artisan migrate
+
+## Configure
+instruct your application to use the database driver by updating the QUEUE_CONNECTION variable in your application's .env file:
+
+    QUEUE_CONNECTION=database
+    GPG_SECRET_PASSPHRASE=mysecretpassphrase
+
+finally, instruct your application the path of the GPG private key by updating the GPG_PRIVATE_KEY variable in the .env file or by modifying the gnupg.php file found in your application's config folder:
+    
+    #.env
+    GPG_PRIVATE_KEY=/home/user/.gnupg/private.asc
+
+or
+
+    #/config/gnupg.php
+    /*
+     |--------------------------------------------------------------------------
+     | GPG Signing Key
+     |--------------------------------------------------------------------------
+     |
+     |  extension to save the decry
+     |
+     */
+
+    'private_key' => env('GPG_PRIVATE_KEY', __DIR__.'/key.asc')
+
 ## Examples
 ### Example of used to load Excel files encrypted with OpenPGP
 
@@ -31,20 +65,23 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use App\Models\User;
 use W360\ImportGpgExcel\Imports\GpgImport;
 
-class UsersImport extends GpgImport implements ToModel
+class UsersImport extends GpgImport
 {
 
     /**
+     * if the object is returned, the row is considered 
+     * to have been imported successfully, 
+     * otherwise the row will be marked as failed in the report
+     * 
      * @param array $row
-     *
      * @return User|null
      */
-    public function model(array $row)
+    public function row(array $row)
     {
-        return new User([
-            'name'     => $row[0],
-            'email'    => $row[1],
-            'password' => Hash::make($row[2]),
+        return User::create([
+            'name'     => $row['name'],
+            'email'    => $row['email'],
+            'password' => Hash::make($row['password']),
         ]);
     }
 
@@ -63,15 +100,39 @@ use App\Imports\UsersImport;
 
 class TestController extends Controller
 {
-    private function upload(Request $request){
+    /**
+     * allows you to upload a file and associate
+     * it with an import file that will be 
+     * executed asynchronously via cron jobs
+     * 
+     * @param Request $request
+     */
+     private function upload(Request $request){
         if($request->hasFile('file')){
             ImportGPG::create($request->file, 'default', UsersImport::class);
         }
-    }
+     }
     
-    public function showImportFiles(){
+    /**
+     * show the detail of all imported files
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+     public function showImportFiles(){
          return Import::all();
-    }
+     }
+    
+    /**
+     * show current import file details
+     * 
+     * @return mixed
+     */
+     public function showCurrentImport(){
+         return Import::where('model_type', UsersImport::class)
+         ->where('state', 'processing')
+         ->first();
+     }
+    
 }
 ```
 ## Features
