@@ -73,16 +73,21 @@ class UsersImport extends GpgImport
      * to have been imported successfully, 
      * otherwise the row will be marked as failed in the report
      * 
-     * @param array $row
-     * @return User|null
+     * @param $row
+     * @return mixed
+     * @throws Exception
      */
     public function row(array $row)
     {
-        return User::create([
-            'name'     => $row['name'],
-            'email'    => $row['email'],
-            'password' => Hash::make($row['password']),
-        ]);
+         $findUser = User::where('identifier', $row['identifier'])->first();
+         if(!$findUser){
+             return User::create([
+                'name'     => $row['name'],
+                'email'    => $row['email'],
+                'password' => Hash::make($row['password']),
+            ]);
+        }
+        return $this->exception('User '.$row['identifier'].' already exists');
     }
 
 }

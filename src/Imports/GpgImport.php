@@ -2,9 +2,11 @@
 
 namespace W360\ImportGpgExcel\Imports;
 
+use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\RemembersRowNumber;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -14,9 +16,7 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Events\BeforeImport;
-use Maatwebsite\Excel\Events\ImportFailed;
 use W360\ImportGpgExcel\Contracts\ToRow;
-use W360\ImportGpgExcel\Events\Deleting;
 use W360\ImportGpgExcel\Events\Processing;
 use W360\ImportGpgExcel\Models\Import;
 
@@ -35,12 +35,6 @@ class GpgImport implements
         getConsoleOutput as traitGetConsoleOutput;
     }
 
-    use RemembersRowNumber;
-
-    /**
-     * @var
-     */
-    public $prevPercent;
 
     /**
      * @var Import
@@ -65,14 +59,6 @@ class GpgImport implements
                 $this->gpgImport->total_rows = Arr::first($event->getReader()->getTotalRows()) - ($this->startRow() - 1);
                 $this->gpgImport->state = 'processing';
                 $this->gpgImport->save();
-                $this->event();
-            },
-            ImportFailed::class => function(ImportFailed $event) {
-                $this->gpgImport->failed_rows += 1;
-                $this->gpgImport->processed_rows -= 1;
-                $this->gpgImport->state = 'failed';
-                $this->gpgImport->save();
-                $this->event();
             }
         ];
     }
@@ -80,21 +66,34 @@ class GpgImport implements
     /**
      * @return void
      */
-    private function event()
+    private function event($report)
     {
-        $percent = (($this->gpgImport->processed_rows+$this->gpgImport->failed_rows) / $this->gpgImport->total_rows) * 100;
-        if ($percent === $this->prevPercent) {
+        if (!is_array($report)) {
             return;
         }
-        $this->prevPercent = $percent;
-        if ($percent >= 100) {
-            $percent = 100;
-            $this->gpgImport->state = 'completed';
-            event(new Deleting($this->gpgImport));
+        Processing::dispatch($this->gpgImport->name, $report);
+    }
+
+    /**
+     * @param $message
+     * @param bool $skip
+     * @return false
+     * @throws Exception
+     */
+    public function exception($message, $skip = true)
+    {
+        if(!empty($this->gpgImport->storage)) {
+            Storage::disk($this->gpgImport->storage)->append(
+                $this->gpgImport->storage . DIRECTORY_SEPARATOR . $this->gpgImport->report,
+                $message
+            );
         }
-        $this->gpgImport->percent = $percent;
-        $this->gpgImport->save();
-        Processing::dispatch($percent,$this->gpgImport->name);
+
+        if($skip){
+            return false;
+        }else{
+            throw new Exception($message);
+        }
     }
 
     /**
@@ -127,8 +126,8 @@ class GpgImport implements
     public function collection(Collection $rows)
     {
         if(method_exists($this, 'rows')){
-            $this->rows($rows);
-            $this->event();
+            $report = $this->rows($rows);
+            $this->event($report);
         }
     }
 
@@ -144,19 +143,22 @@ class GpgImport implements
      * }
      *
      * @param Collection $rows
+     * @return int[]
+     * @throws Exception
      */
     public function rows(Collection $rows){
+        $success = 0;
+        $errors = 0;
         foreach($rows as $row)
         {
             $rowInsert = $this->row($row);
             if($rowInsert){
-                $this->gpgImport->processed_rows += 1;
-                $this->gpgImport->save();
+                $success += 1;
             }else{
-                $this->gpgImport->failed_rows += 1;
-                $this->gpgImport->save();
+                $errors += 1;
             }
         }
+        return ['success' => $success, 'errors' => $errors];
     }
 
     /**
@@ -164,11 +166,15 @@ class GpgImport implements
      *
      * @uses
      * public function row($row){
-     *      $row['column_name'];
+     *   $row['column_name'];
      * }
      *
-     * @param $row
-     * @return mixed|null
+     * @param array $row
+     * @return bool
+     * @throws Exception
      */
-    public function row($row){ return true; }
+    public function row(array $row): bool
+    {
+        return $this->exception('unread row', false);
+    }
 }

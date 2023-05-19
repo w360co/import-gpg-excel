@@ -7,6 +7,7 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use W360\ImportGpgExcel\Models\Import;
 
 class Processing implements ShouldBroadcast
 {
@@ -16,31 +17,45 @@ class Processing implements ShouldBroadcast
     /**
      * Percent of processing
      *
-     * @var int
+     * @var string
      */
-    public $percent;
+    public $name;
 
     /**
      * @var string
      */
-    public $channelID;
+    public $report;
 
     /**
-     * @param int $percent
-     * @param string $channelID
+     * @param $name
+     * @param $report
      */
-    public function __construct($percent, $channelID)
+    public function __construct($name, $report)
     {
-        if ($percent < 0 || $percent > 100) {
-            throw new \InvalidArgumentException('Percent value out of range');
+        if (empty($name) || !is_array($report)) {
+            throw new \InvalidArgumentException('No support report to file');
         }
-
-        $this->percent = $percent;
-        $this->channelID = $channelID;
+        $this->name = $name;
+        $this->report = json_encode($report);
+        $model = Import::where('name', $name)->where('state', 'processing')->first();
+        if($model && $model->total_rows > 0){
+            $model->processed_rows += $report['success'] ?? 0;
+            $model->failed_rows += $report['errors'] ?? 0;
+            $model->percent = (($model->processed_rows + $model->failed_rows) / $model->total_rows) * 100;
+            if ($model->percent >= 100) {
+                $model->state = 'completed';
+            }
+            $model->save();
+            $this->report = $model->percent;
+            $this->name = $model->id."-".$model->name;
+            if ($model->percent >= 100) {
+                event(new Deleting($model));
+            }
+        }
     }
 
     public function broadcastOn()
     {
-        return new Channel('processing.' . $this->channelID);
+        return new Channel('processing.' . $this->name);
     }
 }
