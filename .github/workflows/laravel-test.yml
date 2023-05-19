@@ -1,52 +1,75 @@
-name: runtest
+name: master
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
-    test:
-        runs-on: ${{ matrix.os }}
-        strategy:
-            fail-fast: true
-            matrix:
-                os: [ubuntu-latest]
-                php: [8.1, 8.0]
-                laravel: [9.*, 8.*]
-                dependency-version: [prefer-lowest, prefer-stable]
-                include:
-                    -   laravel: 9.*
-                        testbench: 7.*
-                    -   laravel: 8.*
-                        testbench: ^6.23
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        php: [ 8.1 ]
+        mysql: [ 8.0 ]
+        laravel: [ 10.* ]
+        dependency-version: [ prefer-stable ]
+        include:
+          - laravel: 10.*
+          - testbench: 8.*
 
-        name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
+    name: P${{ matrix.php }} - M${{ matrix.mysql }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
+    env:
+      DB_CONNECTION: mysql
+      DB_PORT: 3306
+      DB_HOST: 127.0.0.1
+      DB_USERNAME: root
+      DB_PASSWORD: "5FAVMj5IzQA729PD"
+      DB_DATABASE: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-        steps:
-            -   name: Checkout code
-                uses: actions/checkout@v2
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
+          coverage: none
 
-            -   name: Setup PHP
-                uses: shivammathur/setup-php@v2
-                with:
-                    php-version: ${{ matrix.php }}
-                    extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
-                    coverage: none
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
 
-            -   name: Import GPG key
-                uses: crazy-max/ghaction-import-gpg@v5
-                with:
-                    gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      - name: Shutdown Ubuntu MySQL (SUDO)
+        run: sudo service mysql stop
 
-            -   name: Setup problem matchers
-                run: |
-                    echo "::add-matcher::${{ runner.tool_cache }}/php.json"
-                    echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
-            -   name: Install dependencies
-                run: |
-                    composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-                    composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
-            -   name: Execute tests
-                run: vendor/bin/phpunit
+      - name: Setup Mysql
+        uses: mirromutth/mysql-action@v1.1
+        with:
+          mysql version: '8'
+          mysql root password: $DB_PASSWORD
+          mysql database: $DB_DATABASE
+
+      - name: Verify MySQL connection from host
+        run: |
+          sudo apt-get install -y mysql-client
+
+      - name: Wait for MySQL
+        run: |
+          while ! mysqladmin ping --host=127.0.0.1 --password=$DB_PASSWORD --silent; do
+            sleep 1
+          done
+
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Setup Problem Matchers
+        run: |
+          echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+          echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Execute Tests
+        run: vendor/bin/phpunit
