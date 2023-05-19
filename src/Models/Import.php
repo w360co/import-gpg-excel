@@ -4,6 +4,7 @@ namespace W360\ImportGpgExcel\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Import extends Model
 {
@@ -20,11 +21,11 @@ class Import extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+     * @return BelongsTo
      */
     public function author()
     {
-        return $this->morphTo();
+        return $this->belongsTo($this->attributes['author_type'] ?? \Illuminate\Foundation\Auth\User::class, 'author_id');
     }
 
 }
