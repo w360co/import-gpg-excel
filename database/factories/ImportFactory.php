@@ -14,7 +14,8 @@ $factory->define(Import::class, function (Generator $faker) {
     return [
         'name' => $fileName,
         'report' => 'log-'.$fileName,
-        'author' => 'Elbert Tous',
+        'author_id' => 1,
+        'author_type' => User::class,
         'storage' => $faker->slug(2),
         'model_type' => User::class
     ];

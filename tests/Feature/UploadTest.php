@@ -4,7 +4,10 @@ namespace W360\ImportGpgExcel\Tests\Feature;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Jobs\QueueImport;
+use W360\ImportGpgExcel\Events\Processing;
 use W360\ImportGpgExcel\Facades\ImportGPG;
 use W360\ImportGpgExcel\Imports\UsersImport;
 use W360\ImportGpgExcel\Models\Import;
@@ -17,6 +20,7 @@ class UploadTest extends TestCase
      * @test
      */
     public function save_image_in_database(){
+        Import::truncate();
         factory(Import::class)->create();
         $this->assertCount(1, Import::all(), 'Database Images Is Empty');
     }
@@ -28,6 +32,7 @@ class UploadTest extends TestCase
 
        $storage = 'local';
        Storage::fake($storage);
+       Queue::fake();
 
        $filename =  realpath(__DIR__ . '/files/mock.xlsx.gpg');
        if(file_exists($filename)) {
@@ -39,9 +44,9 @@ class UploadTest extends TestCase
            $this->assertNotEmpty($file->name, 'No save image name');
 
            $import = Import::where('id', $file->id)->first();
-           $this->assertEquals('3', $import->processed_rows);
-           $this->assertEquals('3', $import->total_rows);
 
+           $this->assertEquals('3', $import->total_rows);
+           Queue::assertPushed(QueueImport::class);
 
        }else{
            $this->assertTrue(false, 'file test no fond PATH:'. $filename);

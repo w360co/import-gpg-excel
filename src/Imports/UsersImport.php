@@ -3,23 +3,19 @@
 namespace W360\ImportGpgExcel\Imports;
 
 use Illuminate\Support\Facades\Hash;
-use Maatwebsite\Excel\Concerns\ToModel;
 use W360\ImportGpgExcel\Models\User;
 
-class UsersImport extends GpgImport implements ToModel
+class UsersImport extends GpgImport
 {
-
-    /**
-     * @param array $row
-     *
-     * @return User|null
-     */
-    public function model(array $row)
+   /**
+    * @return mixed|null
+    */
+    public function row($row)
     {
         return new User([
-            'name'     => $row[0],
-            'email'    => $row[1],
-            'password' => Hash::make($row[2]),
+            'name'     => $row['name'],
+            'email'    => $row['email'],
+            'password' => Hash::make('password'),
         ]);
     }
 

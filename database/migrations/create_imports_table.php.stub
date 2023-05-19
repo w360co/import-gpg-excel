@@ -12,8 +12,9 @@ class CreateImportsTable extends Migration
      *
      * @return void
      */
-    public function up(){
-
+    public function up()
+    {
+        if(Schema::hasTable('imports')) return;
         Schema::create('imports', function (Blueprint $table) {
             $table->unsignedBigInteger('id',true);
             $table->string('name')->index();
