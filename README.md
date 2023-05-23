@@ -55,12 +55,13 @@ or
 ### Example of used to load Excel files encrypted with OpenPGP
 
 ####App\Imports\UsersImport.php
+
 ```PHP
 <?php
 
 namespace App\Imports;
 
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Collection;use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Concerns\ToModel;
 use App\Models\User;
 use W360\ImportGpgExcel\Imports\GpgImport;
@@ -73,11 +74,11 @@ class UsersImport extends GpgImport
      * to have been imported successfully, 
      * otherwise the row will be marked as failed in the report
      * 
-     * @param $row
+     * @param array | Collection $row
      * @return mixed
      * @throws Exception
      */
-    public function row(array $row)
+    public function row($row)
     {
          $findUser = User::where('identifier', $row['identifier'])->first();
          if(!$findUser){

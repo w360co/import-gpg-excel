@@ -3,15 +3,16 @@
 namespace W360\ImportGpgExcel\Contracts;
 
 use Exception;
+use Illuminate\Support\Collection;
 
 interface ToRow
 {
 
     /**
      *
-     * @param array $row
+     * @param array | Collection $row
      * @return mixed
      * @throws Exception
      */
-    public function row(array $row): bool;
+    public function row($row): bool;
 }

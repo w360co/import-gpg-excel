@@ -2,6 +2,7 @@
 
 namespace W360\ImportGpgExcel\Imports;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use W360\ImportGpgExcel\Models\User;
 
@@ -9,11 +10,11 @@ class UsersImport extends GpgImport
 {
 
     /**
-     * @param array $row
+     * @param array | Collection $row
      * @return bool
      * @throws \Exception
      */
-    public function row(array $row): bool
+    public function row($row): bool
     {
         $findUser = User::where('identifier', $row['identifier'])->first();
         if(!$findUser){

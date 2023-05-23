@@ -167,11 +167,11 @@ class GpgImport implements
      *   $row['column_name'];
      * }
      *
-     * @param array $row
+     * @param array | Collection $row
      * @return bool
      * @throws Exception
      */
-    public function row(array $row): bool
+    public function row($row): bool
     {
         return $this->exception('unread row', false);
     }
